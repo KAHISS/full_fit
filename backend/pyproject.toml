@@ -1,0 +1,8 @@
+[project]
+name = "Full_Fit"
+version = "1.0.0"
+description = "App for life style fitness"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi>=0.162.0",
+]
