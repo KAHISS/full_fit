@@ -21,46 +21,46 @@ from app.core.exceptions import (
 )
 
 
-class _PayloadTeste(BaseModel):
+class _TestPayload(BaseModel):
     nome: str
     idade: int
 
 
-def _criar_app_teste() -> FastAPI:
+def _create_test_app() -> FastAPI:
     app = FastAPI()
     app.add_exception_handler(AppError, app_error_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
     app.add_exception_handler(StarletteHTTPException, http_exception_handler)
     app.add_exception_handler(Exception, unhandled_exception_handler)
 
-    @app.post("/teste/validacao")
-    async def rota_validacao(payload: _PayloadTeste) -> dict[str, str]:
+    @app.post("/test/validation")
+    async def validation_route(payload: _TestPayload) -> dict[str, str]:
         return {"nome": payload.nome}
 
-    @app.get("/teste/400")
-    async def rota_400() -> None:
+    @app.get("/test/400")
+    async def route_400() -> None:
         raise BadRequestError(
             detail="Dados inconsistentes.", code="dados_inconsistentes"
         )
 
-    @app.get("/teste/401")
-    async def rota_401() -> None:
+    @app.get("/test/401")
+    async def route_401() -> None:
         raise UnauthorizedError(detail="Token expirado.", code="token_expirado")
 
-    @app.get("/teste/403")
-    async def rota_403() -> None:
+    @app.get("/test/403")
+    async def route_403() -> None:
         raise ForbiddenError()
 
-    @app.get("/teste/404")
-    async def rota_404() -> None:
+    @app.get("/test/404")
+    async def route_404() -> None:
         raise NotFoundError()
 
-    @app.get("/teste/409")
-    async def rota_409() -> None:
+    @app.get("/test/409")
+    async def route_409() -> None:
         raise ConflictError()
 
-    @app.get("/teste/500")
-    async def rota_500() -> None:
+    @app.get("/test/500")
+    async def route_500() -> None:
         raise RuntimeError("falha no banco")
 
     return app
@@ -68,16 +68,16 @@ def _criar_app_teste() -> FastAPI:
 
 @pytest.fixture
 async def client() -> AsyncGenerator[httpx.AsyncClient]:
-    app = _criar_app_teste()
+    app = _create_test_app()
     transport = httpx.ASGITransport(app=app, raise_app_exceptions=False)
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as ac:
         yield ac
 
 
-async def test_validacao_pydantic_retorna_400_com_extra(
+async def test_pydantic_validation_returns_400_with_extra(
     client: httpx.AsyncClient,
 ) -> None:
-    response = await client.post("/teste/validacao", json={"idade": "invalido"})
+    response = await client.post("/test/validation", json={"idade": "invalido"})
     assert response.status_code == 400
 
     body = response.json()
@@ -85,8 +85,8 @@ async def test_validacao_pydantic_retorna_400_com_extra(
     assert body["code"] == "erro_validacao"
     assert isinstance(body["extra"], list)
 
-    campos_com_erro = {item["key"] for item in body["extra"]}
-    assert campos_com_erro == {"nome", "idade"}
+    error_fields = {item["key"] for item in body["extra"]}
+    assert error_fields == {"nome", "idade"}
     for item in body["extra"]:
         assert set(item.keys()) == {"key", "message"}
         assert isinstance(item["message"], str)
@@ -94,35 +94,35 @@ async def test_validacao_pydantic_retorna_400_com_extra(
 
 
 @pytest.mark.parametrize(
-    ("rota", "status_esperado", "code_esperado"),
+    ("route", "expected_status", "expected_code"),
     [
-        ("/teste/400", 400, "dados_inconsistentes"),
-        ("/teste/401", 401, "token_expirado"),
-        ("/teste/403", 403, "acesso_negado"),
-        ("/teste/404", 404, "nao_encontrado"),
-        ("/teste/409", 409, "conflito"),
+        ("/test/400", 400, "dados_inconsistentes"),
+        ("/test/401", 401, "token_expirado"),
+        ("/test/403", 403, "acesso_negado"),
+        ("/test/404", 404, "nao_encontrado"),
+        ("/test/409", 409, "conflito"),
     ],
 )
-async def test_subclasses_app_error(
+async def test_app_error_subclasses(
     client: httpx.AsyncClient,
-    rota: str,
-    status_esperado: int,
-    code_esperado: str,
+    route: str,
+    expected_status: int,
+    expected_code: str,
 ) -> None:
-    response = await client.get(rota)
-    assert response.status_code == status_esperado
+    response = await client.get(route)
+    assert response.status_code == expected_status
 
     body = response.json()
     assert set(body.keys()) == {"detail", "code", "extra"}
     assert isinstance(body["detail"], str)
-    assert body["code"] == code_esperado
+    assert body["code"] == expected_code
     assert body["extra"] == []
 
 
-async def test_excecao_nao_tratada_retorna_500_generico(
+async def test_unhandled_exception_returns_generic_500(
     client: httpx.AsyncClient,
 ) -> None:
-    response = await client.get("/teste/500")
+    response = await client.get("/test/500")
     assert response.status_code == 500
 
     body = response.json()
@@ -132,8 +132,8 @@ async def test_excecao_nao_tratada_retorna_500_generico(
     assert "falha no banco" not in response.text
 
 
-async def test_rota_inexistente_segue_o_contrato(client: httpx.AsyncClient) -> None:
-    response = await client.get("/rota-que-nao-existe")
+async def test_nonexistent_route_follows_contract(client: httpx.AsyncClient) -> None:
+    response = await client.get("/nonexistent-route")
     assert response.status_code == 404
 
     body = response.json()
@@ -142,15 +142,15 @@ async def test_rota_inexistente_segue_o_contrato(client: httpx.AsyncClient) -> N
     assert body["extra"] == []
 
 
-async def test_metodo_nao_permitido(client: httpx.AsyncClient) -> None:
-    response = await client.get("/teste/validacao")
+async def test_method_not_allowed(client: httpx.AsyncClient) -> None:
+    response = await client.get("/test/validation")
     assert response.status_code == 405
     assert response.json()["code"] == "metodo_nao_permitido"
 
 
-async def test_chave_para_json_invalido(client: httpx.AsyncClient) -> None:
+async def test_key_for_invalid_json(client: httpx.AsyncClient) -> None:
     response = await client.post(
-        "/teste/validacao",
+        "/test/validation",
         content="{isso nao e json",
         headers={"Content-Type": "application/json"},
     )
