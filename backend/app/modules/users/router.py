@@ -3,7 +3,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, status
 
-from app.core.dependencies import CurrentUser, get_user_service # CurrentUser será implementado no módulo auth
+from app.core.dependencies import (  # CurrentUser será implementado no módulo auth
+    CurrentUser,
+    get_user_service,
+)
 from app.modules.users.schemas import (
     ActivateNutritionistProfileRequest,
     ActivateStudentProfileRequest,

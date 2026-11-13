@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
@@ -224,7 +224,7 @@ async def test_record_login_failure_repo_error(service, repo):
 
 async def test_record_login_success_success(service, repo):
     user_id = uuid.uuid4()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     await service.record_login_success(user_id, now)
 
@@ -235,7 +235,7 @@ async def test_record_login_success_repo_error(service, repo):
     repo.record_login_success.side_effect = RuntimeError("db error")
 
     with pytest.raises(RuntimeError):
-        await service.record_login_success(uuid.uuid4(), datetime.now(timezone.utc))
+        await service.record_login_success(uuid.uuid4(), datetime.now(UTC))
 
 
 async def test_confirm_user_email_success(service, repo):
