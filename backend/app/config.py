@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 15
     refresh_token_expire_days: int = 30
+    email_verification_token_expire_hours: int = Field(default=24, gt=0)
+    password_reset_token_expire_minutes: int = Field(default=30, gt=0)
+    password_min_length: int = Field(default=8, ge=1)
+    password_max_length: int = Field(default=128, ge=1)
+
 
     @field_validator("database_url", "test_database_url")
     @classmethod
@@ -30,6 +35,12 @@ class Settings(BaseSettings):
         if v is not None and not v.startswith("postgresql+asyncpg://"):
             raise ValueError("A URL do banco deve começar com postgresql+asyncpg://")
         return v
+
+    @model_validator(mode="after")
+    def validate_limit_password(self) -> "Settings":
+        if self.password_min_length > self.password_max_length:
+            raise ValueError("PASSWORD_MIN_LENGTH não pode ser maior que PASSWORD_MAX_LENGTH")
+        return self
 
 
 settings = Settings()  # type: ignore[call-arg]
