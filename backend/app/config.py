@@ -28,10 +28,16 @@ class Settings(BaseSettings):
     password_min_length: int = Field(default=8, ge=1)
     password_max_length: int = Field(default=128, ge=1)
 
+    # Version of the legal documents accepted at registration
+    # (Consentimento.versao_documento, up to 10 characters).
+    # When a new text is published, bump the version here.
+    consent_terms_version: str = Field(default="1.0", min_length=1, max_length=10)
+    consent_privacy_version: str = Field(default="1.0", min_length=1, max_length=10)
+    consent_advertising_version: str = Field(default="1.0", min_length=1, max_length=10)
 
     @field_validator("database_url", "test_database_url")
     @classmethod
-    def exigir_driver_asyncpg(cls, v: str | None) -> str | None:
+    def exiges_driver_asyncpg(cls, v: str | None) -> str | None:
         if v is not None and not v.startswith("postgresql+asyncpg://"):
             raise ValueError("A URL do banco deve começar com postgresql+asyncpg://")
         return v
