@@ -48,16 +48,16 @@ def verify_password(password: str, password_hash: str) -> bool:
 # Access token (JWT)
 # ---------------------------------------------------------------------------
 
-_TIPO_ACCESS = "access"
+_TYPE_ACCESS = "access"
 
 
 def create_access_token(user_id: uuid.UUID) -> str:
-    agora = datetime.now(UTC)
+    now = datetime.now(UTC)
     payload = {
         "sub": str(user_id),
-        "type": _TIPO_ACCESS,
-        "iat": agora,
-        "exp": agora + timedelta(minutes=settings.access_token_expire_minutes),
+        "type": _TYPE_ACCESS,
+        "iat": now,
+        "exp": now + timedelta(minutes=settings.access_token_expire_minutes),
     }
     return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
@@ -76,7 +76,7 @@ def decode_access_token(token: str) -> uuid.UUID:
     except jwt.InvalidTokenError:
         raise UnauthorizedError(detail="Token inválido.", code="token_invalido") from None
 
-    if payload.get("type") != _TIPO_ACCESS:
+    if payload.get("type") != _TYPE_ACCESS:
         raise UnauthorizedError(detail="Token inválido.", code="token_invalido")
 
     try:
