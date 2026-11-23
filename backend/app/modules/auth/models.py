@@ -34,6 +34,12 @@ class RefreshToken(Base):
     )
     expira_em: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     revogado_em: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Rotação (D-12): quando este token é trocado por um novo, aponta para o substituto.
+    # Apresentar de novo um token já substituído indica reuso (possível roubo).
+    id_substituido_por: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("refresh_token.id", ondelete="SET NULL"),
+    )
 
 
 class TokenUsuario(Base):

@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.email import ConsoleEmailSender, EmailSender
+from app.core.email import EmailSender, build_email_sender
 from app.core.exceptions import BadRequestError
 from app.db.session import get_db_session
 from app.modules.auth.repository import AuthRepository
@@ -24,7 +24,7 @@ async def get_user_service(
 
 
 def get_email_sender() -> EmailSender:
-    return ConsoleEmailSender()
+    return build_email_sender()
 
 
 async def get_auth_service(
@@ -36,6 +36,9 @@ async def get_auth_service(
 
 
 def get_client_ip(request: Request) -> str:
+    # Este IP é a prova do consentimento (LGPD). Atrás do Nginx, suba o uvicorn com
+    # --proxy-headers e --forwarded-allow-ips com o IP do proxy. Sem isso, client.host é o
+    # IP do proxy; com "*", qualquer um poderia forjar o X-Forwarded-For.
     if request.client is None:
         raise BadRequestError(
             detail="Não foi possível identificar o IP da requisição.",

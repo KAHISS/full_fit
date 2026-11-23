@@ -19,8 +19,8 @@ from app.modules.users.models import TipoConsentimento, Usuario
 from app.modules.users.service import UserService
 
 logger = logging.getLogger(__name__)
-
 _EMAIL_UNIQUE_INDEX = "uq_usuario_email_lower"
+
 
 class AuthService:
     def __init__(
@@ -37,11 +37,11 @@ class AuthService:
         password = payload.senha.get_secret_value()
         validate_password_strength(password)
 
-        # Argon2 is slow on purpose and CPU-bound. Run it in a separate thread so it
-        # does not block the event loop (and other requests) while it computes.
+        # O Argon2 é lento de propósito e consome CPU. Roda em outra thread para não
+        # travar o event loop (e as outras requisições) enquanto calcula.
         password_hash = await asyncio.to_thread(hash_password, password)
 
-        # We also record "did not accept" (accepted=False): it is the audit history.
+        # Registramos também o "não aceitei" (aceito=False): é o histórico de auditoria
         consents = [
             (
                 TipoConsentimento.TERMOS_USO,
@@ -78,6 +78,8 @@ class AuthService:
                 crn=payload.nutricionista.crn if payload.nutricionista else None,
             )
         except IntegrityError as exc:
+            # Duas requisições com o mesmo e-mail ao mesmo tempo passam juntas pelo
+            # email_exists; o índice único do banco barra a segunda.
             if _EMAIL_UNIQUE_INDEX in str(exc.orig):
                 raise ConflictError(
                     detail="Já existe uma conta cadastrada com este e-mail.",
@@ -85,11 +87,7 @@ class AuthService:
                 ) from exc
             raise
 
-        await self._send_verification_email(user)
-        return user
-
-    async def _send_verification_email(self, user: Usuario) -> None:
-        # Only the hash goes to the database. The raw value goes only in the email.
+        # Só o hash vai para o banco. O valor puro é usado apenas no e-mail.
         token = issue_opaque_token(email_verification_token_ttl())
         await self.repository.create_user_token(
             user_id=user.id,
@@ -97,10 +95,13 @@ class AuthService:
             token_hash=token.hash,
             expires_at=token.expires_at,
         )
-
         try:
             await self.email_sender.send_email_verification(
-                to=user.email, name=user.nome, token=token.value
+                to=user.email,
+                name=user.nome,
+                token=token.value,
             )
         except Exception:
             logger.exception("Falha ao enviar e-mail de verificação (usuário %s).", user.id)
+
+        return user
