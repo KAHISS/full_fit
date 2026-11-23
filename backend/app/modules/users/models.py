@@ -71,8 +71,9 @@ class Usuario(TimestampMixin, Base):
     status_usuario: Mapped[str] = mapped_column(
         Text,
         nullable=False,
-        default=StatusUsuario.PENDENTE_EMAIL,
-        server_default=text("'PENDENTE_EMAIL'"),
+        # D-15: e-mail não verificado não bloqueia o login, então contas novas já nascem ATIVO.
+        default=StatusUsuario.ATIVO,
+        server_default=text("'ATIVO'"),
     )
     permissao_admin: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default=text("false")

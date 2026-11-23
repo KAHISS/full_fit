@@ -121,9 +121,7 @@ async def test_update_profile_without_student_profile_error(service, repo):
     repo.get_by_id.return_value = user
 
     with pytest.raises(BadRequestError):
-        await service.update_profile(
-            user.id, user_fields={}, altura_cm=180, update_altura_cm=True
-        )
+        await service.update_profile(user.id, user_fields={}, altura_cm=180, update_altura_cm=True)
 
 
 async def test_activate_student_profile_success(service, repo):
@@ -149,9 +147,7 @@ async def test_activate_trainer_profile_success(service, repo):
 
     await service.activate_trainer_profile(user.id, cref="123456-G/SP")
 
-    repo.create_trainer_profile.assert_awaited_once_with(
-        user_id=user.id, cref="123456-G/SP"
-    )
+    repo.create_trainer_profile.assert_awaited_once_with(user_id=user.id, cref="123456-G/SP")
 
 
 async def test_activate_trainer_profile_already_exists_error(service, repo):
@@ -168,9 +164,7 @@ async def test_activate_nutritionist_profile_success(service, repo):
 
     await service.activate_nutritionist_profile(user.id, crn="12345")
 
-    repo.create_nutritionist_profile.assert_awaited_once_with(
-        user_id=user.id, crn="12345"
-    )
+    repo.create_nutritionist_profile.assert_awaited_once_with(user_id=user.id, crn="12345")
 
 
 async def test_activate_nutritionist_profile_already_exists_error(service, repo):
@@ -194,9 +188,7 @@ async def test_update_professional_verification_status_success(service, repo):
     repo.update_trainer_status.assert_awaited_once()
 
 
-async def test_update_professional_verification_status_invalid_type_error(
-    service, repo
-):
+async def test_update_professional_verification_status_invalid_type_error(service, repo):
     with pytest.raises(BadRequestError):
         await service.update_professional_verification_status(
             uuid.uuid4(),
@@ -258,9 +250,7 @@ async def test_change_password_success(service, repo):
 
     await service.change_password(user_id, "new_hash")
 
-    repo.update_password.assert_awaited_once_with(
-        user_id=user_id, new_password_hash="new_hash"
-    )
+    repo.update_password.assert_awaited_once_with(user_id=user_id, new_password_hash="new_hash")
 
 
 async def test_change_password_repo_error(service, repo):

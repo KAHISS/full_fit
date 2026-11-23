@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: fullfit
       POSTGRES_DB: fullfit_test
     ports:
-      - "5433:5432"
+      - "5433:5434"
     tmpfs:
       - /var/lib/postgresql/data
     healthcheck:

@@ -39,9 +39,7 @@ def _create_test_app() -> FastAPI:
 
     @app.get("/test/400")
     async def route_400() -> None:
-        raise BadRequestError(
-            detail="Dados inconsistentes.", code="dados_inconsistentes"
-        )
+        raise BadRequestError(detail="Dados inconsistentes.", code="dados_inconsistentes")
 
     @app.get("/test/401")
     async def route_401() -> None:

@@ -49,9 +49,7 @@ class UserRepository:
         await self.session.flush()
         return user
 
-    async def get_by_id(
-        self, user_id: uuid.UUID, *, load_profiles: bool = False
-    ) -> Usuario | None:
+    async def get_by_id(self, user_id: uuid.UUID, *, load_profiles: bool = False) -> Usuario | None:
         stmt = select(Usuario).where(Usuario.id == user_id)
         if load_profiles:
             stmt = stmt.options(
@@ -62,9 +60,7 @@ class UserRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_by_email(
-        self, email: str, *, load_profiles: bool = False
-    ) -> Usuario | None:
+    async def get_by_email(self, email: str, *, load_profiles: bool = False) -> Usuario | None:
         stmt = select(Usuario).where(func.lower(Usuario.email) == email.strip().lower())
         if load_profiles:
             stmt = stmt.options(
@@ -76,9 +72,7 @@ class UserRepository:
         return result.scalar_one_or_none()
 
     async def email_exists(self, email: str) -> bool:
-        stmt = select(Usuario.id).where(
-            func.lower(Usuario.email) == email.strip().lower()
-        )
+        stmt = select(Usuario.id).where(func.lower(Usuario.email) == email.strip().lower())
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none() is not None
 
@@ -101,9 +95,7 @@ class UserRepository:
         )
         await self.session.execute(stmt)
 
-    async def record_login_success(
-        self, user_id: uuid.UUID, last_login: datetime
-    ) -> None:
+    async def record_login_success(self, user_id: uuid.UUID, last_login: datetime) -> None:
         stmt = (
             update(Usuario)
             .where(Usuario.id == user_id)
@@ -139,9 +131,7 @@ class UserRepository:
         await self.session.execute(stmt)
 
     async def update_status(self, user_id: uuid.UUID, status: StatusUsuario) -> None:
-        stmt = (
-            update(Usuario).where(Usuario.id == user_id).values(status_usuario=status)
-        )
+        stmt = update(Usuario).where(Usuario.id == user_id).values(status_usuario=status)
         await self.session.execute(stmt)
 
     async def create_student_profile(
@@ -204,11 +194,7 @@ class UserRepository:
         values: dict[str, Any] = {"status_verificacao": verification_status}
         if crn is not None:
             values["crn"] = crn
-        stmt = (
-            update(Nutricionista)
-            .where(Nutricionista.id_usuario == user_id)
-            .values(**values)
-        )
+        stmt = update(Nutricionista).where(Nutricionista.id_usuario == user_id).values(**values)
         await self.session.execute(stmt)
 
     async def record_consents(
