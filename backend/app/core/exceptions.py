@@ -139,9 +139,7 @@ async def app_error_handler(request: Request, exc: Exception) -> JSONResponse:
     )
 
 
-async def validation_exception_handler(
-    request: Request, exc: Exception
-) -> JSONResponse:
+async def validation_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, RequestValidationError)
     extra: list[dict[str, str]] = [
         {

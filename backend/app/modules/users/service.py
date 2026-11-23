@@ -20,9 +20,7 @@ class UserService:
     def __init__(self, repository: UserRepository) -> None:
         self.repository = repository
 
-    async def get_user_by_id(
-        self, user_id: uuid.UUID, *, load_profiles: bool = True
-    ) -> Usuario:
+    async def get_user_by_id(self, user_id: uuid.UUID, *, load_profiles: bool = True) -> Usuario:
         user = await self.repository.get_by_id(user_id, load_profiles=load_profiles)
         if not user or user.status_usuario == StatusUsuario.EXCLUIDO:
             raise NotFoundError(
@@ -31,9 +29,7 @@ class UserService:
             )
         return user
 
-    async def get_user_by_email(
-        self, email: str, *, load_profiles: bool = True
-    ) -> Usuario | None:
+    async def get_user_by_email(self, email: str, *, load_profiles: bool = True) -> Usuario | None:
         user = await self.repository.get_by_email(email, load_profiles=load_profiles)
         if user and user.status_usuario == StatusUsuario.EXCLUIDO:
             return None
@@ -80,9 +76,7 @@ class UserService:
         )
 
         if create_student:
-            await self.repository.create_student_profile(
-                user_id=user.id, altura_cm=altura_cm
-            )
+            await self.repository.create_student_profile(user_id=user.id, altura_cm=altura_cm)
 
         if create_trainer:
             await self.repository.create_trainer_profile(user_id=user.id, cref=cref)
@@ -117,9 +111,7 @@ class UserService:
             "biografia",
             "foto_url",
         }
-        sanitized_data = {
-            key: value for key, value in user_fields.items() if key in allowed_fields
-        }
+        sanitized_data = {key: value for key, value in user_fields.items() if key in allowed_fields}
 
         if sanitized_data:
             await self.repository.update_user_data(user, sanitized_data)
@@ -135,9 +127,7 @@ class UserService:
                 user.aluno.altura_cm = altura_cm
 
             if condicoes_saude is not None:
-                cleaned_conditions = [
-                    item.strip() for item in condicoes_saude if item.strip()
-                ]
+                cleaned_conditions = [item.strip() for item in condicoes_saude if item.strip()]
                 await self.repository.replace_student_health_conditions(
                     student_id=user.id,
                     descriptions=cleaned_conditions,
@@ -155,9 +145,7 @@ class UserService:
                 code="perfil_ja_existente",
             )
 
-        await self.repository.create_student_profile(
-            user_id=user.id, altura_cm=altura_cm
-        )
+        await self.repository.create_student_profile(user_id=user.id, altura_cm=altura_cm)
         return await self.get_user_by_id(user.id, load_profiles=True)
 
     async def activate_trainer_profile(
@@ -224,20 +212,14 @@ class UserService:
             locked_until=locked_until,
         )
 
-    async def record_login_success(
-        self, user_id: uuid.UUID, last_login: datetime
-    ) -> None:
-        await self.repository.record_login_success(
-            user_id=user_id, last_login=last_login
-        )
+    async def record_login_success(self, user_id: uuid.UUID, last_login: datetime) -> None:
+        await self.repository.record_login_success(user_id=user_id, last_login=last_login)
 
     async def confirm_user_email(self, user_id: uuid.UUID) -> None:
         await self.repository.verify_email(user_id=user_id)
 
     async def change_password(self, user_id: uuid.UUID, new_password_hash: str) -> None:
-        await self.repository.update_password(
-            user_id=user_id, new_password_hash=new_password_hash
-        )
+        await self.repository.update_password(user_id=user_id, new_password_hash=new_password_hash)
 
     async def delete_account(self, user_id: uuid.UUID) -> None:
         user = await self.get_user_by_id(user_id, load_profiles=False)
@@ -261,9 +243,7 @@ class UserService:
     def _validate_required_consents(
         consents: list[tuple[TipoConsentimento, bool, str]],
     ) -> None:
-        accepted_types = {
-            consent_type for consent_type, accepted, _ in consents if accepted
-        }
+        accepted_types = {consent_type for consent_type, accepted, _ in consents if accepted}
         required = {TipoConsentimento.TERMOS_USO, TipoConsentimento.PRIVACIDADE}
         if not required.issubset(accepted_types):
             raise BadRequestError(

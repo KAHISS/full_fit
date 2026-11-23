@@ -32,12 +32,8 @@ class StatusVerificacao(StrEnum):
 class VerificacaoProfissional(Base):
     __tablename__ = "verificacao_profissional"
     __table_args__ = (
-        CheckConstraint(
-            "tipo_conselho IN ('CREF', 'CRN')", name="tipo_conselho_valido"
-        ),
-        CheckConstraint(
-            "status IN ('PENDENTE', 'APROVADA', 'REJEITADA')", name="status_valido"
-        ),
+        CheckConstraint("tipo_conselho IN ('CREF', 'CRN')", name="tipo_conselho_valido"),
+        CheckConstraint("status IN ('PENDENTE', 'APROVADA', 'REJEITADA')", name="status_valido"),
         CheckConstraint(
             "status <> 'REJEITADA' OR (motivo_rejeicao IS NOT NULL AND LENGTH(TRIM(motivo_rejeicao)) > 0)",
             name="rejeitada_motivo",

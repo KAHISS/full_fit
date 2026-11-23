@@ -144,8 +144,8 @@ def hash_token(token: str) -> str:
 
 @dataclass(frozen=True, slots=True)
 class OpaqueToken:
-    value: str  
-    hash: str 
+    value: str
+    hash: str
     expires_at: datetime
 
 

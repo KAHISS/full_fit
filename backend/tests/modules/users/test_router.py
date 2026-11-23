@@ -120,14 +120,10 @@ async def test_activate_student_profile_conflict_error(client, mock_service):
 
 
 async def test_activate_trainer_profile_success(client, mock_user, mock_service):
-    mock_user.treinador = SimpleNamespace(
-        cref="123456-G/SP", status_verificacao="NAO_ENVIADO"
-    )
+    mock_user.treinador = SimpleNamespace(cref="123456-G/SP", status_verificacao="NAO_ENVIADO")
     mock_service.activate_trainer_profile.return_value = mock_user
 
-    response = await client.post(
-        "/users/me/profiles/trainer", json={"cref": "123456-G/SP"}
-    )
+    response = await client.post("/users/me/profiles/trainer", json={"cref": "123456-G/SP"})
 
     assert response.status_code == 201
     assert response.json()["treinador"]["cref"] == "123456-G/SP"
@@ -136,22 +132,16 @@ async def test_activate_trainer_profile_success(client, mock_user, mock_service)
 async def test_activate_trainer_profile_conflict_error(client, mock_service):
     mock_service.activate_trainer_profile.side_effect = ConflictError()
 
-    response = await client.post(
-        "/users/me/profiles/trainer", json={"cref": "123456-G/SP"}
-    )
+    response = await client.post("/users/me/profiles/trainer", json={"cref": "123456-G/SP"})
 
     assert response.status_code == 409
 
 
 async def test_activate_nutritionist_profile_success(client, mock_user, mock_service):
-    mock_user.nutricionista = SimpleNamespace(
-        crn="12345", status_verificacao="NAO_ENVIADO"
-    )
+    mock_user.nutricionista = SimpleNamespace(crn="12345", status_verificacao="NAO_ENVIADO")
     mock_service.activate_nutritionist_profile.return_value = mock_user
 
-    response = await client.post(
-        "/users/me/profiles/nutritionist", json={"crn": "12345"}
-    )
+    response = await client.post("/users/me/profiles/nutritionist", json={"crn": "12345"})
 
     assert response.status_code == 201
     assert response.json()["nutricionista"]["crn"] == "12345"
@@ -160,9 +150,7 @@ async def test_activate_nutritionist_profile_success(client, mock_user, mock_ser
 async def test_activate_nutritionist_profile_conflict_error(client, mock_service):
     mock_service.activate_nutritionist_profile.side_effect = ConflictError()
 
-    response = await client.post(
-        "/users/me/profiles/nutritionist", json={"crn": "12345"}
-    )
+    response = await client.post("/users/me/profiles/nutritionist", json={"crn": "12345"})
 
     assert response.status_code == 409
 
